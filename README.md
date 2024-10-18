@@ -2,8 +2,10 @@
 
 Example of a [Micronaut](https://micronaut.io/) Java lambda which uses
 [Drools](https://www.drools.org/). It dynamically loads .drl using a
-rule unit (the modern way of writing Drools rules), and executes
-it. Includes caching this to avoid recompilation to improve speed.
+rule unit [the modern way of writing Drools
+rules](https://docs.drools.org/8.39.0.Final/drools-docs/docs-website/drools/migration-guide/index.html#_rule_unit),
+and executes it. Includes caching this to avoid recompilation to
+improve speed.
 
 # The rule
 
