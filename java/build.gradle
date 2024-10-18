@@ -1,0 +1,82 @@
+plugins {
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("io.micronaut.application") version "4.4.2"
+}
+
+version = "0.1"
+group = "example.micronaut"
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+  droolsVersion = "8.44.0.Final"
+}
+
+dependencies {
+    // Micronaut
+    annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
+    implementation("com.amazonaws:aws-lambda-java-events")
+    implementation("io.micronaut:micronaut-http-client-jdk")
+    implementation("io.micronaut.aws:micronaut-aws-lambda-events-serde")
+    implementation("io.micronaut.aws:micronaut-function-aws")
+    implementation("io.micronaut.aws:micronaut-function-aws-custom-runtime")
+    implementation("io.micronaut.serde:micronaut-serde-jackson")
+    runtimeOnly("ch.qos.logback:logback-classic")
+
+    // Drools
+    implementation("org.drools:drools-ruleunits-engine:$droolsVersion")
+    implementation("org.drools:drools-wiring-dynamic:$droolsVersion")
+}
+
+application {
+    mainClass = "example.micronaut.FunctionLambdaRuntime"
+}
+java {
+    sourceCompatibility = JavaVersion.toVersion("21")
+    targetCompatibility = JavaVersion.toVersion("21")
+}
+
+micronaut {
+    runtime("lambda_provided")
+    testRuntime("junit5")
+    processing {
+        incremental(true)
+        annotations("example.micronaut.*")
+    }
+}
+
+// Arguments when building the graalvm binary
+graalvmNative {
+  binaries {
+    main {
+      // Disable optimisations during testing
+      buildArgs.add("-Ob")
+      buildArgs.add("--initialize-at-build-time=org.mvel2.optimizers.impl.refl.ReflectiveAccessorOptimizer")
+      // Statically link our application so we can produce a zip file
+      buildArgs.add('--static')
+      // Use musl to statically link our application
+      buildArgs.add('--libc=musl')
+      buildArgs.add('-H:CCompilerOption=-I/usr/include/musl')
+      buildArgs.add('-H:CCompilerOption=-L/usr/lib64')
+    }
+  }
+}
+
+tasks.named("dockerfileNative") {
+    baseImage = "amazonlinux:2023"
+    jdkVersion = "21"
+    args(
+        "-XX:MaximumHeapSizePercent=80",
+        "-Dio.netty.allocator.numDirectArenas=0",
+        "-Dio.netty.noPreferDirect=true"
+    )
+    // Change dockerfile to install musl
+    editDockerfile {
+        after('RUN tar -zxf /tmp/graalvm-jdk-21_linux-x64_bin.tar.gz -C /tmp && ls -d /tmp/graalvm-jdk-21* | grep -v "tar.gz" | xargs -I_ mv _ /usr/lib/graalvm') {
+            insert('RUN ln -s /usr/local/bin/musl-gcc /usr/local/bin/x86_64-linux-musl-gcc')
+            insert('RUN curl --silent -L https://musl.libc.org/releases/musl-1.2.5.tar.gz -o /tmp/musl-1.2.5.tar.gz && tar -zxf /tmp/musl-1.2.5.tar.gz -C /tmp && cd /tmp/musl-1.2.5 && ./configure --bindir=/usr/local/bin &> /dev/null && make --silent && make install')
+        }
+    }
+}
