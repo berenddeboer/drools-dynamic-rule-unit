@@ -18,7 +18,11 @@ The way this works:
 MeasurementUnit ruleUnitData = new MeasurementUnit();
 ruleUnitData.getMeasurements().add(input);
 
-RuleUnitInstance<MeasurementUnit> instance = (RuleUnitInstance<MeasurementUnit>) newInstance("src/main/resources/example/micronaut/rules.drl", ruleUnitData);
+RuleUnitInstance<MeasurementUnit> instance =
+  (RuleUnitInstance<MeasurementUnit>) newInstance(
+    "src/main/resources/example/micronaut/rules.drl",
+    ruleUnitData
+  );
 List<Measurement> queryResult = instance.executeQuery("FindColor").toList("$m");
 instance.close();
 ```
