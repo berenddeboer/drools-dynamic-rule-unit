@@ -7,6 +7,22 @@ rules](https://docs.drools.org/8.39.0.Final/drools-docs/docs-website/drools/migr
 and executes it. Includes caching this to avoid recompilation to
 improve speed.
 
+The way this works:
+
+1. Create a rule unit.
+2. Load any data.
+3. Load the .drl.
+4. Execute it.
+
+```java
+MeasurementUnit ruleUnitData = new MeasurementUnit();
+ruleUnitData.getMeasurements().add(input);
+
+RuleUnitInstance<MeasurementUnit> instance = (RuleUnitInstance<MeasurementUnit>) newInstance("src/main/resources/example/micronaut/rules.drl", ruleUnitData);
+List<Measurement> queryResult = instance.executeQuery("FindColor").toList("$m");
+instance.close();
+```
+
 # The rule
 
 ```
