@@ -23,10 +23,6 @@ import java.util.Map;
 import java.util.HashMap;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import org.kie.api.builder.KieBuilder;
-import java.util.function.BiFunction;
-import java.util.function.Predicate;
-import org.drools.compiler.kie.builder.impl.KieBuilderImpl;
 import org.drools.ruleunits.api.RuleUnitData;
 
 public class FunctionRequestHandler extends MicronautRequestHandler<Measurement, Measurement> {
